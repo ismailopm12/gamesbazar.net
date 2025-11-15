@@ -1,0 +1,7 @@
+project_id = "wwyiepqenjcwjobmlvmh"
+
+[functions.uddokta-pay]
+verify_jwt = false
+
+[functions.uddokta-webhook]
+verify_jwt = false

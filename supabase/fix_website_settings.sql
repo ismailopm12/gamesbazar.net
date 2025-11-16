@@ -47,5 +47,31 @@ SELECT
   'Poppins'
 WHERE NOT EXISTS (SELECT 1 FROM public.website_settings);
 
+-- Fix duplicate "Users can create their own payments" policy error
+-- First, drop all existing policies on the payments table to start fresh
+DROP POLICY IF EXISTS "Users can view their own payments" ON public.payments;
+DROP POLICY IF EXISTS "Users can create their own payments" ON public.payments;
+DROP POLICY IF EXISTS "Admins can manage payments" ON public.payments;
+
+-- Recreate policies with proper permissions
+-- Users can view their own payments
+CREATE POLICY "Users can view their own payments" 
+ON public.payments 
+FOR SELECT 
+USING (auth.uid() = user_id);
+
+-- Users can create their own payments (using a unique name to avoid conflicts)
+CREATE POLICY "Users can create payments" 
+ON public.payments 
+FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+-- Admins can manage all payments
+CREATE POLICY "Admins can manage payments" 
+ON public.payments 
+FOR ALL 
+USING (public.has_role(auth.uid(), 'admin'::public.app_role))
+WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+
 -- Verify the data
 SELECT * FROM public.website_settings LIMIT 1;

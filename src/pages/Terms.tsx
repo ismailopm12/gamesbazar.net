@@ -5,8 +5,18 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define content type
+interface PageContent {
+  id: string;
+  page_slug: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const Terms = () => {
-  const [content, setContent] = useState<any>(null);
+  const [content, setContent] = useState<PageContent | null>(null);
 
   useEffect(() => {
     fetchContent();
@@ -27,11 +37,13 @@ const Terms = () => {
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold gradient-text mb-6">Terms & Conditions</h1>
+          <h1 className="text-4xl font-bold gradient-text mb-6">
+            {content?.title || "Terms & Conditions"}
+          </h1>
           
           <Card>
             <CardContent className="prose prose-sm md:prose max-w-none p-6">
-              {content ? (
+              {content?.content ? (
                 <div dangerouslySetInnerHTML={{ __html: content.content }} />
               ) : (
                 <>

@@ -66,7 +66,7 @@ const Privacy = () => {
           
           <Card>
             <CardContent className="prose prose-sm md:prose max-w-none p-6">
-              {content ? (
+              {content?.content ? (
                 <div dangerouslySetInnerHTML={{ __html: content.content }} />
               ) : (
                 <div dangerouslySetInnerHTML={{ __html: defaultContent }} />

@@ -34,6 +34,7 @@ const PageContentManagement = () => {
     { value: "contact", label: "Contact Us" },
     { value: "terms", label: "Terms & Conditions" },
     { value: "privacy", label: "Privacy Policy" },
+    { value: "footer", label: "Footer Copyright" },
   ];
 
   useEffect(() => {
@@ -111,7 +112,7 @@ const PageContentManagement = () => {
           const doc = parser.parseFromString(data.content, 'text/html');
           const faqItems: FAQItem[] = [];
           
-          doc.querySelectorAll('div.faq-item').forEach(item => {
+          doc.querySelectorAll('.faq-item').forEach(item => {
             const question = item.querySelector('.faq-question')?.textContent || '';
             const answer = item.querySelector('.faq-answer')?.textContent || '';
             if (question && answer) {
@@ -138,6 +139,18 @@ const PageContentManagement = () => {
           { question: "রিফান্ড পলিসি কি?", answer: "একবার কোড ডেলিভারি হয়ে গেলে রিফান্ড দেওয়া সম্ভব নয়। তবে যদি কোনো সমস্যা হয় তাহলে আমাদের সাপোর্ট টিমের সাথে যোগাযোগ করুন।" },
           { question: "কাস্টমার সাপোর্ট কিভাবে পাবো?", answer: "আপনি আমাদের WhatsApp, Facebook বা Email এর মাধ্যমে যোগাযোগ করতে পারবেন। সাপোর্ট টিম ২৪/৭ উপলব্ধ আছে।" }
         ]);
+      }
+      
+      // Set default titles for other pages
+      if (selectedPage === "contact") {
+        setTitle("Contact Us");
+      } else if (selectedPage === "terms") {
+        setTitle("Terms & Conditions");
+      } else if (selectedPage === "privacy") {
+        setTitle("Privacy Policy");
+      } else if (selectedPage === "footer") {
+        setTitle("Footer Copyright");
+        setContent("© 2025 BD Games Bazar. All rights reserved. 🎮");
       }
     }
     setLoading(false);
@@ -290,15 +303,17 @@ const PageContentManagement = () => {
           </div>
         ) : (
           <>
-            <div>
-              <Label htmlFor="title">Page Title</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter page title"
-              />
-            </div>
+            {selectedPage !== "footer" && (
+              <div>
+                <Label htmlFor="title">Page Title</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter page title"
+                />
+              </div>
+            )}
 
             {selectedPage === "help" ? (
               // FAQ Management for Help page
@@ -349,18 +364,47 @@ const PageContentManagement = () => {
             ) : (
               // Regular content editor for other pages
               <div>
-                <Label htmlFor="content">Content (HTML Supported)</Label>
+                <Label htmlFor="content">
+                  {selectedPage === "footer" ? "Copyright Text" : "Content (HTML Supported)"}
+                </Label>
                 <Textarea
                   id="content"
-                  rows={15}
+                  rows={selectedPage === "footer" ? 3 : 15}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Enter page content (HTML tags supported)"
+                  placeholder={selectedPage === "footer" ? "Enter copyright text" : "Enter page content (HTML tags supported)"}
                   className="font-mono text-sm"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  You can use HTML tags for formatting. Example: &lt;h2&gt;Heading&lt;/h2&gt;&lt;p&gt;Paragraph text&lt;/p&gt;
+                  {selectedPage === "footer" 
+                    ? "Enter the copyright text that will appear in the footer" 
+                    : "You can use HTML tags for formatting. Example: &lt;h2&gt;Heading&lt;/h2&gt;&lt;p&gt;Paragraph text&lt;/p&gt;"}
                 </p>
+                
+                {/* Show default content hint for new pages */}
+                {(!content || content.trim() === "") && selectedPage !== "footer" && (
+                  <div className="mt-2 p-3 bg-muted rounded-md">
+                    <p className="text-sm font-medium">Default Content:</p>
+                    {selectedPage === "contact" && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        © 2025 BD Games Bazar. All rights reserved. 🎮<br />
+                        Email: support@bdgamesbazar.com<br />
+                        WhatsApp: +880 XXX XXX XXXX<br />
+                        Facebook: /bdgamesbazar
+                      </p>
+                    )}
+                    {selectedPage === "terms" && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Terms and Conditions content will appear here...
+                      </p>
+                    )}
+                    {selectedPage === "privacy" && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Privacy Policy content will appear here...
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

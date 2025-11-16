@@ -10,10 +10,29 @@ interface OrderWithProduct extends Tables<'orders'> {
 const Footer = () => {
   const [recentOrders, setRecentOrders] = useState<OrderWithProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copyrightText, setCopyrightText] = useState("© 2025 BD Games Bazar. All rights reserved. 🎮");
 
   useEffect(() => {
     fetchRecentOrders();
+    fetchCopyrightText();
   }, []);
+
+  const fetchCopyrightText = async () => {
+    try {
+      // Try to fetch from page_contents with slug 'footer'
+      const { data } = await supabase
+        .from("page_contents")
+        .select("content")
+        .eq("page_slug", "footer")
+        .maybeSingle();
+      
+      if (data?.content) {
+        setCopyrightText(data.content);
+      }
+    } catch (error) {
+      console.log("Could not fetch custom footer text, using default");
+    }
+  };
 
   const fetchRecentOrders = async () => {
     try {
@@ -196,7 +215,7 @@ const Footer = () => {
 
         <div className="border-t border-border mt-6 md:mt-8 pt-6 md:pt-8 text-center">
           <p className="text-xs md:text-sm text-muted-foreground">
-            © 2025 BD Games Bazar. All rights reserved. 🎮
+            {copyrightText}
           </p>
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Developed by Sujon

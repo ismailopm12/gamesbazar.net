@@ -11,8 +11,18 @@ import { Phone, Mail, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Define content type
+interface PageContent {
+  id: string;
+  page_slug: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const Contact = () => {
-  const [content, setContent] = useState<any>(null);
+  const [content, setContent] = useState<PageContent | null>(null);
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const { toast } = useToast();
 
@@ -44,7 +54,9 @@ const Contact = () => {
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold gradient-text mb-6">Contact Us</h1>
+          <h1 className="text-4xl font-bold gradient-text mb-6">
+            {content?.title || "Contact Us"}
+          </h1>
           
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
@@ -74,8 +86,12 @@ const Contact = () => {
                   </div>
                 </div>
 
-                {content && (
+                {content?.content ? (
                   <div className="mt-6 p-4 bg-muted/30 rounded-lg" dangerouslySetInnerHTML={{ __html: content.content }} />
+                ) : (
+                  <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                    <p>© 2025 BD Games Bazar. All rights reserved. 🎮</p>
+                  </div>
                 )}
               </CardContent>
             </Card>

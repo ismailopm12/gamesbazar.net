@@ -6,8 +6,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define content type
+interface PageContent {
+  id: string;
+  page_slug: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Define FAQ item type
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
 const Help = () => {
-  const [content, setContent] = useState<any>(null);
+  const [content, setContent] = useState<PageContent | null>(null);
 
   useEffect(() => {
     fetchContent();
@@ -23,6 +39,50 @@ const Help = () => {
     if (data) setContent(data);
   };
 
+  // Parse FAQ items from content
+  const parseFAQs = (): FAQItem[] => {
+    if (!content || !content.content) {
+      return [
+        { question: "কিভাবে পেমেন্ট করবো?", answer: "আপনি বিকাশ, নগদ বা রকেট এর মাধ্যমে পেমেন্ট করতে পারবেন। পেমেন্ট পেজে যান এবং আপনার পছন্দের পেমেন্ট মেথড সিলেক্ট করুন।" },
+        { question: "কত সময়ে ডেলিভারি পাবো?", answer: "পেমেন্ট কমপ্লিট হওয়ার সাথে সাথেই আপনি আপনার কোড পেয়ে যাবেন। সাধারণত ১ মিনিটের মধ্যে অটোমেটিক ডেলিভারি হয়।" },
+        { question: "রিফান্ড পলিসি কি?", answer: "একবার কোড ডেলিভারি হয়ে গেলে রিফান্ড দেওয়া সম্ভব নয়। তবে যদি কোনো সমস্যা হয় তাহলে আমাদের সাপোর্ট টিমের সাথে যোগাযোগ করুন।" },
+        { question: "কাস্টমার সাপোর্ট কিভাবে পাবো?", answer: "আপনি আমাদের WhatsApp, Facebook বা Email এর মাধ্যমে যোগাযোগ করতে পারবেন। সাপোর্ট টিম ২৪/৭ উপলব্ধ আছে।" }
+      ];
+    }
+
+    try {
+      // Extract FAQ items from the content
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(content.content, 'text/html');
+      const faqItems: FAQItem[] = [];
+      
+      doc.querySelectorAll('.faq-item').forEach(item => {
+        const question = item.querySelector('.faq-question')?.textContent || '';
+        const answer = item.querySelector('.faq-answer')?.textContent || '';
+        if (question && answer) {
+          faqItems.push({ question, answer });
+        }
+      });
+      
+      return faqItems.length > 0 ? faqItems : [
+        { question: "কিভাবে পেমেন্ট করবো?", answer: "আপনি বিকাশ, নগদ বা রকেট এর মাধ্যমে পেমেন্ট করতে পারবেন। পেমেন্ট পেজে যান এবং আপনার পছন্দের পেমেন্ট মেথড সিলেক্ট করুন।" },
+        { question: "কত সময়ে ডেলিভারি পাবো?", answer: "পেমেন্ট কমপ্লিট হওয়ার সাথে সাথেই আপনি আপনার কোড পেয়ে যাবেন। সাধারণত ১ মিনিটের মধ্যে অটোমেটিক ডেলিভারি হয়।" },
+        { question: "রিফান্ড পলিসি কি?", answer: "একবার কোড ডেলিভারি হয়ে গেলে রিফান্ড দেওয়া সম্ভব নয়। তবে যদি কোনো সমস্যা হয় তাহলে আমাদের সাপোর্ট টিমের সাথে যোগাযোগ করুন।" },
+        { question: "কাস্টমার সাপোর্ট কিভাবে পাবো?", answer: "আপনি আমাদের WhatsApp, Facebook বা Email এর মাধ্যমে যোগাযোগ করতে পারবেন। সাপোর্ট টিম ২৪/৭ উপলব্ধ আছে।" }
+      ];
+    } catch (e) {
+      console.log("Could not parse FAQ content, using defaults");
+      return [
+        { question: "কিভাবে পেমেন্ট করবো?", answer: "আপনি বিকাশ, নগদ বা রকেট এর মাধ্যমে পেমেন্ট করতে পারবেন। পেমেন্ট পেজে যান এবং আপনার পছন্দের পেমেন্ট মেথড সিলেক্ট করুন।" },
+        { question: "কত সময়ে ডেলিভারি পাবো?", answer: "পেমেন্ট কমপ্লিট হওয়ার সাথে সাথেই আপনি আপনার কোড পেয়ে যাবেন। সাধারণত ১ মিনিটের মধ্যে অটোমেটিক ডেলিভারি হয়।" },
+        { question: "রিফান্ড পলিসি কি?", answer: "একবার কোড ডেলিভারি হয়ে গেলে রিফান্ড দেওয়া সম্ভব নয়। তবে যদি কোনো সমস্যা হয় তাহলে আমাদের সাপোর্ট টিমের সাথে যোগাযোগ করুন।" },
+        { question: "কাস্টমার সাপোর্ট কিভাবে পাবো?", answer: "আপনি আমাদের WhatsApp, Facebook বা Email এর মাধ্যমে যোগাযোগ করতে পারবেন। সাপোর্ট টিম ২৪/৭ উপলব্ধ আছে।" }
+      ];
+    }
+  };
+
+  const faqs = parseFAQs();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -35,39 +95,16 @@ const Help = () => {
               <CardTitle>Frequently Asked Questions</CardTitle>
             </CardHeader>
             <CardContent>
-              {content ? (
-                <div dangerouslySetInnerHTML={{ __html: content.content }} />
-              ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger>কিভাবে পেমেন্ট করবো?</AccordionTrigger>
+              <Accordion type="single" collapsible className="w-full">
+                {faqs.map((faq, index) => (
+                  <AccordionItem key={index} value={`item-${index}`}>
+                    <AccordionTrigger>{faq.question}</AccordionTrigger>
                     <AccordionContent>
-                      আপনি বিকাশ, নগদ বা রকেট এর মাধ্যমে পেমেন্ট করতে পারবেন। পেমেন্ট পেজে যান এবং আপনার পছন্দের পেমেন্ট মেথড সিলেক্ট করুন।
+                      {faq.answer}
                     </AccordionContent>
                   </AccordionItem>
-
-                  <AccordionItem value="item-2">
-                    <AccordionTrigger>কত সময়ে ডেলিভারি পাবো?</AccordionTrigger>
-                    <AccordionContent>
-                      পেমেন্ট কমপ্লিট হওয়ার সাথে সাথেই আপনি আপনার কোড পেয়ে যাবেন। সাধারণত ১ মিনিটের মধ্যে অটোমেটিক ডেলিভারি হয়।
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-3">
-                    <AccordionTrigger>রিফান্ড পলিসি কি?</AccordionTrigger>
-                    <AccordionContent>
-                      একবার কোড ডেলিভারি হয়ে গেলে রিফান্ড দেওয়া সম্ভব নয়। তবে যদি কোনো সমস্যা হয় তাহলে আমাদের সাপোর্ট টিমের সাথে যোগাযোগ করুন।
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-4">
-                    <AccordionTrigger>কাস্টমার সাপোর্ট কিভাবে পাবো?</AccordionTrigger>
-                    <AccordionContent>
-                      আপনি আমাদের WhatsApp, Facebook বা Email এর মাধ্যমে যোগাযোগ করতে পারবেন। সাপোর্ট টিম ২৪/৭ উপলব্ধ আছে।
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              )}
+                ))}
+              </Accordion>
             </CardContent>
           </Card>
         </div>

@@ -7,20 +7,61 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Plus, Edit, Trash } from "lucide-react";
 
+// Define SEO settings interface
+interface SEOSettings {
+  id: string;
+  page_path: string;
+  title: string;
+  description: string | null;
+  keywords: string | null;
+  og_image: string | null;
+  og_title: string | null;
+  og_description: string | null;
+  og_type: string | null;
+  og_url: string | null;
+  twitter_card: string | null;
+  twitter_site: string | null;
+  twitter_creator: string | null;
+  canonical_url: string | null;
+  robots: string | null;
+  author: string | null;
+  viewport: string | null;
+  theme_color: string | null;
+  mobile_web_app_capable: string | null;
+  apple_mobile_web_app_title: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 const SEOManagement = () => {
-  const [seoSettings, setSeoSettings] = useState<any[]>([]);
+  const [seoSettings, setSeoSettings] = useState<SEOSettings[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingSettings, setEditingSettings] = useState<any>(null);
+  const [editingSettings, setEditingSettings] = useState<SEOSettings | null>(null);
   const [formData, setFormData] = useState({
     page_path: "",
     title: "",
     description: "",
     keywords: "",
     og_image: "",
+    og_title: "",
+    og_description: "",
+    og_type: "website",
+    og_url: "",
+    twitter_card: "summary_large_image",
+    twitter_site: "",
+    twitter_creator: "",
+    canonical_url: "",
+    robots: "index, follow",
+    author: "",
+    viewport: "width=device-width, initial-scale=1",
+    theme_color: "",
+    mobile_web_app_capable: "yes",
+    apple_mobile_web_app_title: "",
   });
   const { toast } = useToast();
 
@@ -37,10 +78,10 @@ const SEOManagement = () => {
 
       if (error) throw error;
       setSeoSettings(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {
@@ -66,10 +107,10 @@ const SEOManagement = () => {
       setIsDialogOpen(false);
       resetForm();
       fetchSeoSettings();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     }
@@ -82,10 +123,10 @@ const SEOManagement = () => {
       if (error) throw error;
       toast({ title: "SEO settings deleted successfully" });
       fetchSeoSettings();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     }
@@ -98,11 +139,25 @@ const SEOManagement = () => {
       description: "",
       keywords: "",
       og_image: "",
+      og_title: "",
+      og_description: "",
+      og_type: "website",
+      og_url: "",
+      twitter_card: "summary_large_image",
+      twitter_site: "",
+      twitter_creator: "",
+      canonical_url: "",
+      robots: "index, follow",
+      author: "",
+      viewport: "width=device-width, initial-scale=1",
+      theme_color: "",
+      mobile_web_app_capable: "yes",
+      apple_mobile_web_app_title: "",
     });
     setEditingSettings(null);
   };
 
-  const openEditDialog = (settings: any) => {
+  const openEditDialog = (settings: SEOSettings) => {
     setEditingSettings(settings);
     setFormData({
       page_path: settings.page_path,
@@ -110,6 +165,20 @@ const SEOManagement = () => {
       description: settings.description || "",
       keywords: settings.keywords || "",
       og_image: settings.og_image || "",
+      og_title: settings.og_title || "",
+      og_description: settings.og_description || "",
+      og_type: settings.og_type || "website",
+      og_url: settings.og_url || "",
+      twitter_card: settings.twitter_card || "summary_large_image",
+      twitter_site: settings.twitter_site || "",
+      twitter_creator: settings.twitter_creator || "",
+      canonical_url: settings.canonical_url || "",
+      robots: settings.robots || "index, follow",
+      author: settings.author || "",
+      viewport: settings.viewport || "width=device-width, initial-scale=1",
+      theme_color: settings.theme_color || "",
+      mobile_web_app_capable: settings.mobile_web_app_capable || "yes",
+      apple_mobile_web_app_title: settings.apple_mobile_web_app_title || "",
     });
     setIsDialogOpen(true);
   };
@@ -133,59 +202,195 @@ const SEOManagement = () => {
               Add SEO Settings
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingSettings ? "Edit" : "Add"} SEO Settings</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label>Page Path</Label>
-                <Input
-                  value={formData.page_path}
-                  onChange={(e) => setFormData({ ...formData, page_path: e.target.value })}
-                  required
-                  placeholder="/"
-                  disabled={!!editingSettings}
-                />
-              </div>
-              <div>
-                <Label>Title</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                  maxLength={60}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formData.title.length}/60 characters
-                </p>
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  maxLength={160}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formData.description.length}/160 characters
-                </p>
-              </div>
-              <div>
-                <Label>Keywords</Label>
-                <Input
-                  value={formData.keywords}
-                  onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
-                  placeholder="keyword1, keyword2, keyword3"
-                />
-              </div>
-              <div>
-                <Label>OG Image URL</Label>
-                <Input
-                  value={formData.og_image}
-                  onChange={(e) => setFormData({ ...formData, og_image: e.target.value })}
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">Basic SEO</TabsTrigger>
+                  <TabsTrigger value="open-graph">Open Graph</TabsTrigger>
+                  <TabsTrigger value="twitter">Twitter</TabsTrigger>
+                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="basic" className="space-y-4 mt-4">
+                  <div>
+                    <Label>Page Path</Label>
+                    <Input
+                      value={formData.page_path}
+                      onChange={(e) => setFormData({ ...formData, page_path: e.target.value })}
+                      required
+                      placeholder="/"
+                      disabled={!!editingSettings}
+                    />
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      required
+                      maxLength={60}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.title.length}/60 characters
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      maxLength={160}
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.description.length}/160 characters
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Keywords</Label>
+                    <Input
+                      value={formData.keywords}
+                      onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                      placeholder="keyword1, keyword2, keyword3"
+                    />
+                  </div>
+                  <div>
+                    <Label>OG Image URL</Label>
+                    <Input
+                      value={formData.og_image}
+                      onChange={(e) => setFormData({ ...formData, og_image: e.target.value })}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="open-graph" className="space-y-4 mt-4">
+                  <div>
+                    <Label>OG Title</Label>
+                    <Input
+                      value={formData.og_title}
+                      onChange={(e) => setFormData({ ...formData, og_title: e.target.value })}
+                      placeholder="Open Graph title"
+                    />
+                  </div>
+                  <div>
+                    <Label>OG Description</Label>
+                    <Textarea
+                      value={formData.og_description}
+                      onChange={(e) => setFormData({ ...formData, og_description: e.target.value })}
+                      rows={3}
+                      placeholder="Open Graph description"
+                    />
+                  </div>
+                  <div>
+                    <Label>OG Type</Label>
+                    <Input
+                      value={formData.og_type}
+                      onChange={(e) => setFormData({ ...formData, og_type: e.target.value })}
+                      placeholder="website"
+                    />
+                  </div>
+                  <div>
+                    <Label>OG URL</Label>
+                    <Input
+                      value={formData.og_url}
+                      onChange={(e) => setFormData({ ...formData, og_url: e.target.value })}
+                      placeholder="https://example.com/page"
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="twitter" className="space-y-4 mt-4">
+                  <div>
+                    <Label>Twitter Card</Label>
+                    <Input
+                      value={formData.twitter_card}
+                      onChange={(e) => setFormData({ ...formData, twitter_card: e.target.value })}
+                      placeholder="summary_large_image"
+                    />
+                  </div>
+                  <div>
+                    <Label>Twitter Site</Label>
+                    <Input
+                      value={formData.twitter_site}
+                      onChange={(e) => setFormData({ ...formData, twitter_site: e.target.value })}
+                      placeholder="@username"
+                    />
+                  </div>
+                  <div>
+                    <Label>Twitter Creator</Label>
+                    <Input
+                      value={formData.twitter_creator}
+                      onChange={(e) => setFormData({ ...formData, twitter_creator: e.target.value })}
+                      placeholder="@username"
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="advanced" className="space-y-4 mt-4">
+                  <div>
+                    <Label>Canonical URL</Label>
+                    <Input
+                      value={formData.canonical_url}
+                      onChange={(e) => setFormData({ ...formData, canonical_url: e.target.value })}
+                      placeholder="https://example.com/canonical"
+                    />
+                  </div>
+                  <div>
+                    <Label>Robots</Label>
+                    <Input
+                      value={formData.robots}
+                      onChange={(e) => setFormData({ ...formData, robots: e.target.value })}
+                      placeholder="index, follow"
+                    />
+                  </div>
+                  <div>
+                    <Label>Author</Label>
+                    <Input
+                      value={formData.author}
+                      onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                      placeholder="Author name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Viewport</Label>
+                    <Input
+                      value={formData.viewport}
+                      onChange={(e) => setFormData({ ...formData, viewport: e.target.value })}
+                      placeholder="width=device-width, initial-scale=1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Theme Color</Label>
+                    <Input
+                      value={formData.theme_color}
+                      onChange={(e) => setFormData({ ...formData, theme_color: e.target.value })}
+                      placeholder="#000000"
+                    />
+                  </div>
+                  <div>
+                    <Label>Mobile Web App Capable</Label>
+                    <Input
+                      value={formData.mobile_web_app_capable}
+                      onChange={(e) => setFormData({ ...formData, mobile_web_app_capable: e.target.value })}
+                      placeholder="yes"
+                    />
+                  </div>
+                  <div>
+                    <Label>Apple Mobile Web App Title</Label>
+                    <Input
+                      value={formData.apple_mobile_web_app_title}
+                      onChange={(e) => setFormData({ ...formData, apple_mobile_web_app_title: e.target.value })}
+                      placeholder="App Title"
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+              
               <Button type="submit" className="w-full">
                 {editingSettings ? "Update" : "Create"} SEO Settings
               </Button>

@@ -21,8 +21,40 @@ import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import LiveOrderStatusPage from "./pages/LiveOrderStatusPage";
+import useSEO from "@/hooks/useSEO";
 
 const queryClient = new QueryClient();
+
+// Main app component with SEO
+const AppContent = () => {
+  useSEO();
+  
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/grant-admin" element={<GrantAdmin />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/add-money" element={<AddMoney />} />
+        <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/my-codes" element={<MyCodes />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/product/:productId" element={<ProductDetails />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-failed" element={<PaymentFailed />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/live-orders" element={<LiveOrderStatusPage />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -30,27 +62,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/grant-admin" element={<GrantAdmin />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/add-money" element={<AddMoney />} />
-          <Route path="/my-orders" element={<MyOrders />} />
-          <Route path="/my-codes" element={<MyCodes />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/product/:productId" element={<ProductDetails />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/payment-failed" element={<PaymentFailed />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/live-orders" element={<LiveOrderStatusPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppContent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

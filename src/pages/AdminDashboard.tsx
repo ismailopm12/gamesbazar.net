@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut, Menu, X, ShoppingCart, Package, FolderTree, List, Gift, Users, Image, Bell, FileText, Link2, Wallet, CreditCard, Settings, BookOpen, Palette } from "lucide-react";
+import { Loader2, LogOut, Menu, X, ShoppingCart, Package, FolderTree, List, Gift, Users, Image, Bell, FileText, Link2, Wallet, CreditCard, BookOpen, Palette } from "lucide-react";
 import UserManagement from "@/components/admin/UserManagement";
 import ProductManagement from "@/components/admin/ProductManagement";
 import VariantManagement from "@/components/admin/VariantManagement";
@@ -17,7 +17,6 @@ import CategoryManagement from "@/components/admin/CategoryManagement";
 import PaymentURLManagement from "@/components/admin/PaymentURLManagement";
 import MoneyRequestManagement from "@/components/admin/MoneyRequestManagement";
 import PaymentManagement from "@/components/admin/PaymentManagement";
-import { UddoktaPaySettings } from "@/components/admin/UddoktaPaySettings";
 import PageContentManagement from "@/components/admin/PageContentManagement";
 import WebsiteSettingsManagement from "@/components/admin/WebsiteSettingsManagement";
 import StorageTest from "@/components/admin/StorageTest";
@@ -42,7 +41,6 @@ const AdminDashboard = () => {
     { value: "hero", label: "Hero Slider", icon: Image },
     { value: "announcements", label: "Popups", icon: Bell },
     { value: "payment-urls", label: "Payment URLs", icon: Link2 },
-    { value: "uddokta-settings", label: "Uddokta Pay API", icon: Settings },
     { value: "money-requests", label: "Money Requests", icon: Wallet },
     { value: "page-content", label: "Page Content", icon: BookOpen },
     { value: "website-settings", label: "Website Settings", icon: Palette },
@@ -117,15 +115,7 @@ const AdminDashboard = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className={`
         fixed lg:sticky top-0 left-0 h-screen
@@ -193,8 +183,8 @@ const AdminDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
         <header className="lg:hidden sticky top-0 z-30 bg-card border-b border-primary/20 px-4 py-3 flex items-center justify-between shadow-sm">
           <Button 
             variant="ghost" 
@@ -222,7 +212,6 @@ const AdminDashboard = () => {
             {activeTab === "hero" && <HeroSliderManagement />}
             {activeTab === "announcements" && <AnnouncementManagement />}
             {activeTab === "payment-urls" && <PaymentURLManagement />}
-            {activeTab === "uddokta-settings" && <UddoktaPaySettings />}
             {activeTab === "money-requests" && <MoneyRequestManagement />}
             {activeTab === "page-content" && <PageContentManagement />}
             {activeTab === "website-settings" && <WebsiteSettingsManagement />}

@@ -48,22 +48,64 @@ const WebsiteSettingsManagement = () => {
 
   const fetchSettings = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("website_settings")
-      .select("*")
-      .limit(1)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("website_settings")
+        .select("*")
+        .limit(1)
+        .single();
 
-    if (error) {
+      if (error) {
+        console.error("Fetch error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch website settings: " + error.message,
+          variant: "destructive",
+        });
+      } else if (data) {
+        setSettings({
+          ...settings,
+          ...data
+        });
+      } else {
+        // If no data exists, create a default row
+        const { data: insertData, error: insertError } = await supabase
+          .from("website_settings")
+          .insert({
+            site_title: "BD GAMES BAZAR",
+            primary_color: "#8B5CF6",
+            secondary_color: "#06B6D4",
+            accent_color: "#10B981",
+            facebook_url: "https://facebook.com/bdgamesbazar",
+            youtube_url: "https://youtube.com/@bdgamesbazar",
+            whatsapp_url: "https://wa.me/8801XXXXXXXXX",
+            telegram_url: "https://t.me/bdgamesbazar",
+            primary_font: "Inter",
+            secondary_font: "Poppins",
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          toast({
+            title: "Error",
+            description: "Failed to create website settings: " + insertError.message,
+            variant: "destructive",
+          });
+        } else if (insertData) {
+          setSettings({
+            ...settings,
+            ...insertData
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch website settings: " + error.message,
+        description: "An unexpected error occurred: " + (error as Error).message,
         variant: "destructive",
-      });
-    } else if (data) {
-      setSettings({
-        ...settings,
-        ...data
       });
     }
     setLoading(false);
@@ -71,25 +113,96 @@ const WebsiteSettingsManagement = () => {
 
   const handleSave = async () => {
     setSaving(true);
+    try {
+      // Check if we have a valid ID
+      if (settings.id) {
+        // Update existing record
+        const { error } = await supabase
+          .from("website_settings")
+          .update(settings)
+          .eq("id", settings.id);
 
-    const { error } = await supabase
-      .from("website_settings")
-      .update(settings)
-      .eq("id", settings.id);
+        if (error) {
+          console.error("Update error:", error);
+          toast({
+            title: "Error",
+            description: "Failed to save website settings: " + error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Website settings saved successfully",
+          });
+        }
+      } else {
+        // If no ID, try to insert or update the first record
+        const { data: existingData } = await supabase
+          .from("website_settings")
+          .select("id")
+          .limit(1);
 
-    if (error) {
+        if (existingData && existingData.length > 0) {
+          // Update the first record
+          const { error } = await supabase
+            .from("website_settings")
+            .update(settings)
+            .eq("id", existingData[0].id);
+
+          if (error) {
+            console.error("Update error:", error);
+            toast({
+              title: "Error",
+              description: "Failed to save website settings: " + error.message,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Success",
+              description: "Website settings saved successfully",
+            });
+            // Update the ID in state
+            setSettings({
+              ...settings,
+              id: existingData[0].id
+            });
+          }
+        } else {
+          // Insert new record
+          const { data: insertData, error: insertError } = await supabase
+            .from("website_settings")
+            .insert(settings)
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error("Insert error:", insertError);
+            toast({
+              title: "Error",
+              description: "Failed to save website settings: " + insertError.message,
+              variant: "destructive",
+            });
+          } else if (insertData) {
+            toast({
+              title: "Success",
+              description: "Website settings saved successfully",
+            });
+            // Update the ID in state
+            setSettings({
+              ...settings,
+              id: insertData.id
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
       toast({
         title: "Error",
-        description: "Failed to save website settings: " + error.message,
+        description: "An unexpected error occurred: " + (error as Error).message,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Website settings saved successfully",
-      });
     }
-
     setSaving(false);
   };
 

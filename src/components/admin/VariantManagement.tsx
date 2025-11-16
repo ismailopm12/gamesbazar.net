@@ -162,9 +162,10 @@ const VariantManagement = () => {
       resetForm();
       fetchVariants();
     } catch (error) {
+      console.error("Variant management error:", error);
       toast({
         title: "Error",
-        description: (error as Error).message,
+        description: (error as Error).message || "Failed to manage variant",
         variant: "destructive",
       });
     }
@@ -181,9 +182,10 @@ const VariantManagement = () => {
       toast({ title: "Variant deleted successfully" });
       fetchVariants();
     } catch (error) {
+      console.error("Variant delete error:", error);
       toast({
         title: "Error",
-        description: (error as Error).message,
+        description: (error as Error).message || "Failed to delete variant",
         variant: "destructive",
       });
     }

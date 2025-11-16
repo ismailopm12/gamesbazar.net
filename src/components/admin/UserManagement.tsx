@@ -40,10 +40,10 @@ const UserManagement = () => {
     }
   };
 
-  const toggleAdmin = async (userId: string, currentRoles: { role: string }[]) => {
+  const toggleAdmin = async (userId: string, userRoles: { role: string }[]) => {
     try {
-      const isAdmin = currentRoles.some((r) => r.role === "admin");
-
+      const isAdmin = userRoles.some((r) => r.role === "admin");
+      
       if (isAdmin) {
         const { error } = await supabase
           .from("user_roles")
@@ -64,9 +64,10 @@ const UserManagement = () => {
       });
       fetchUsers();
     } catch (error) {
+      console.error("User role toggle error:", error);
       toast({
         title: "Error",
-        description: (error as Error).message,
+        description: (error as Error).message || "Failed to update user role",
         variant: "destructive",
       });
     }

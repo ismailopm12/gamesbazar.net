@@ -25,14 +25,26 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
+interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  balance: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [balance, setBalance] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [formData, setFormData] = useState({ full_name: "", phone: "" });
   const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -41,84 +53,123 @@ const Profile = () => {
   }, []);
 
   const fetchUserData = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
-      return;
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+
+      // Fetch profile with error handling
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        setError("Failed to load profile data");
+        return;
+      }
+
+      if (profileData) {
+        setProfile(profileData);
+        setBalance(Number(profileData.balance) || 0);
+        setFormData({
+          full_name: profileData.full_name || "",
+          phone: profileData.phone || "",
+        });
+      }
+
+      // Fetch total orders
+      const { count, error: ordersError } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", session.user.id);
+
+      if (ordersError) {
+        console.error("Orders fetch error:", ordersError);
+        // Don't set error here as profile data is more important
+      } else {
+        setTotalOrders(count || 0);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setError("An unexpected error occurred");
+    } finally {
+      setLoading(false);
     }
-
-    // Fetch profile
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .single();
-
-    if (profileData) {
-      setProfile(profileData);
-      setBalance(Number(profileData.balance) || 0);
-      setFormData({
-        full_name: profileData.full_name || "",
-        phone: profileData.phone || "",
-      });
-    }
-
-    // Fetch total orders
-    const { count } = await supabase
-      .from("orders")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", session.user.id);
-
-    setTotalOrders(count || 0);
   };
 
   const handleSave = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(formData)
-      .eq("id", session.user.id);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update(formData)
+        .eq("id", session.user.id);
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update profile: " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsEditing(false);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully",
+      });
+      fetchUserData();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: "An unexpected error occurred: " + errorMessage,
         variant: "destructive",
       });
-      return;
     }
-
-    setIsEditing(false);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been updated successfully",
-    });
-    fetchUserData();
   };
 
   const handlePasswordReset = async () => {
     if (!profile?.email) return;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
-      redirectTo: `${window.location.origin}/auth`,
-    });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your email for password reset instructions",
+      });
+      setShowPasswordReset(false);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Error",
-        description: error.message,
+        description: "An unexpected error occurred: " + errorMessage,
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Password Reset Email Sent",
-      description: "Check your email for password reset instructions",
-    });
-    setShowPasswordReset(false);
   };
 
   const handleLogout = async () => {
@@ -126,12 +177,56 @@ const Profile = () => {
     navigate("/");
   };
 
-  if (!profile) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center p-6 max-w-md">
+          <div className="text-red-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold mb-2">Error Loading Profile</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={fetchUserData} className="mr-2">
+            Retry
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/")}>
+            Go Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center p-6 max-w-md">
+          <div className="text-yellow-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold mb-2">Profile Not Found</h2>
+          <p className="text-muted-foreground mb-4">We couldn't find your profile data.</p>
+          <Button onClick={fetchUserData} className="mr-2">
+            Retry
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/")}>
+            Go Home
+          </Button>
         </div>
       </div>
     );

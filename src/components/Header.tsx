@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface WebsiteSettings {
   id: string;
@@ -26,7 +27,7 @@ interface WebsiteSettings {
 }
 
 const Header = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [balance, setBalance] = useState<number>(0);
   const [websiteSettings, setWebsiteSettings] = useState<WebsiteSettings | null>(null);
@@ -74,14 +75,29 @@ const Header = () => {
   };
 
   const checkAdminStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    
-    setIsAdmin(!!data);
+    try {
+      // First check if user has admin role in database
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+      
+      // Additionally check if this is the specific user who should have admin access
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", userId)
+        .single();
+      
+      // Show admin button only for specific admin users
+      const isSpecificAdmin = profile?.email === "sujon.hopm@gmail.com" || profile?.email === "mdismail.opm@gmail.com";
+      setIsAdmin(!!data || isSpecificAdmin);
+    } catch (error) {
+      console.error("Admin status check error:", error);
+      setIsAdmin(false);
+    }
   };
 
   const fetchBalance = async (userId: string) => {

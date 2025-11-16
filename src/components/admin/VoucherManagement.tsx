@@ -10,14 +10,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Plus, Edit, Trash2, Package } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
+
+interface VoucherCode extends Tables<'voucher_codes'> {
+  product_variants?: {
+    name: string;
+    products: {
+      name: string;
+    };
+  };
+}
+
+interface ProductVariant extends Tables<'product_variants'> {
+  products: {
+    name: string;
+  };
+}
 
 const VoucherManagement = () => {
-  const [vouchers, setVouchers] = useState([]);
-  const [variants, setVariants] = useState([]);
+  const [vouchers, setVouchers] = useState<VoucherCode[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkAddDialogOpen, setIsBulkAddDialogOpen] = useState(false);
-  const [editingVoucher, setEditingVoucher] = useState(null);
+  const [editingVoucher, setEditingVoucher] = useState<VoucherCode | null>(null);
   const [formData, setFormData] = useState({
     product_variant_id: "",
     code: "",
@@ -97,28 +113,32 @@ const VoucherManagement = () => {
           .from("voucher_codes")
           .update(formData)
           .eq("id", editingVoucher.id);
-        
-        if (error) throw error;
-        toast({ title: "Voucher code updated successfully" });
-      } else {
-        // Create new voucher
-        const { error } = await supabase.from("voucher_codes").insert(formData);
-        if (error) throw error;
-        toast({ title: "Voucher code added successfully" });
-      }
       
-      setIsDialogOpen(false);
-      setEditingVoucher(null);
-      setFormData({ product_variant_id: "", code: "" });
-      fetchVouchers();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: (error as Error).message,
-        variant: "destructive",
+      if (error) throw error;
+      toast({ title: "Voucher code updated successfully" });
+    } else {
+      // Create new voucher with proper status
+      const { error } = await supabase.from("voucher_codes").insert({
+        ...formData,
+        status: "available"
       });
+      if (error) throw error;
+      toast({ title: "Voucher code added successfully" });
     }
-  };
+    
+    setIsDialogOpen(false);
+    setEditingVoucher(null);
+    setFormData({ product_variant_id: "", code: "" });
+    fetchVouchers();
+  } catch (error) {
+    console.error("Voucher management error:", error);
+    toast({
+      title: "Error",
+      description: (error as Error).message || "Failed to manage voucher code",
+      variant: "destructive",
+    });
+  }
+};
 
   const handleBulkAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,9 +165,10 @@ const VoucherManagement = () => {
       setBulkFormData({ product_variant_id: "", quantity: 1, prefix: "" });
       fetchVouchers();
     } catch (error) {
+      console.error("Bulk add error:", error);
       toast({
         title: "Error",
-        description: (error as Error).message,
+        description: (error as Error).message || "Failed to add voucher codes",
         variant: "destructive",
       });
     }
@@ -172,7 +193,7 @@ const VoucherManagement = () => {
     }
   };
 
-  const openEditDialog = (voucher: typeof vouchers[0]) => {
+  const openEditDialog = (voucher: VoucherCode) => {
     setEditingVoucher(voucher);
     setIsDialogOpen(true);
   };
@@ -220,7 +241,7 @@ const VoucherManagement = () => {
                       <SelectValue placeholder="Select variant" />
                     </SelectTrigger>
                     <SelectContent>
-                      {variants.map((variant: typeof variants[0]) => (
+                      {variants.map((variant) => (
                         <SelectItem key={variant.id} value={variant.id}>
                           {variant.products.name} - {variant.name}
                         </SelectItem>
@@ -281,7 +302,7 @@ const VoucherManagement = () => {
                       <SelectValue placeholder="Select variant" />
                     </SelectTrigger>
                     <SelectContent>
-                      {variants.map((variant: typeof variants[0]) => (
+                      {variants.map((variant) => (
                         <SelectItem key={variant.id} value={variant.id}>
                           {variant.products.name} - {variant.name}
                         </SelectItem>
@@ -319,7 +340,7 @@ const VoucherManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vouchers.map((voucher: typeof vouchers[0]) => (
+              {vouchers.map((voucher) => (
                 <TableRow key={voucher.id}>
                   <TableCell className="max-w-[150px] truncate">
                     {voucher.product_variants?.products?.name} - {voucher.product_variants?.name}

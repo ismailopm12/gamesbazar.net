@@ -21,6 +21,7 @@ import { UddoktaPaySettings } from "@/components/admin/UddoktaPaySettings";
 import PageContentManagement from "@/components/admin/PageContentManagement";
 import WebsiteSettingsManagement from "@/components/admin/WebsiteSettingsManagement";
 import StorageTest from "@/components/admin/StorageTest";
+import UserTest from "@/components/admin/UserTest";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -47,6 +48,7 @@ const AdminDashboard = () => {
     { value: "website-settings", label: "Website Settings", icon: Palette },
     { value: "storage-test", label: "Storage Test", icon: Settings },
     { value: "seo", label: "SEO", icon: FileText },
+    { value: "user-test", label: "User Test", icon: Users },
   ];
 
   useEffect(() => {
@@ -62,14 +64,25 @@ const AdminDashboard = () => {
         return;
       }
 
-      const { data: roles, error } = await supabase
+      // Check if user has admin role in database
+      const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
         .eq("role", "admin")
         .maybeSingle();
 
-      if (error || !roles) {
+      // Additionally check if this is the specific user who should have admin access
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", session.user.id)
+        .single();
+
+      // Allow access for specific admin users
+      const isSpecificAdmin = profile?.email === "sujon.hopm@gmail.com" || profile?.email === "mdismail.opm@gmail.com";
+      
+      if (!roles && !isSpecificAdmin) {
         toast({
           title: "Access Denied",
           description: "You don't have admin permissions. Contact support to get admin access.",
@@ -81,6 +94,7 @@ const AdminDashboard = () => {
 
       setIsAdmin(true);
     } catch (error) {
+      console.error("Admin check error:", error);
       navigate("/");
     } finally {
       setIsLoading(false);
@@ -214,6 +228,7 @@ const AdminDashboard = () => {
             {activeTab === "website-settings" && <WebsiteSettingsManagement />}
             {activeTab === "storage-test" && <StorageTest />}
             {activeTab === "seo" && <SEOManagement />}
+            {activeTab === "user-test" && <UserTest />}
           </div>
         </main>
       </div>

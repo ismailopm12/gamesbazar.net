@@ -9,12 +9,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
+interface OrderWithDetails extends Tables<'orders'> {
+  profiles: { email: string; full_name: string } | null;
+  product_variants: { name: string; products: { name: string } } | null;
+  payments: { transaction_id: string }[];
+}
+
 const OrderManagement = () => {
-  const [orders, setOrders] = useState<(Tables<'orders'> & {
-    profiles: { email: string; full_name: string } | null;
-    product_variants: { name: string; products: { name: string } } | null;
-    payments: { transaction_id: string }[];
-  })[]>([]);
+  const [orders, setOrders] = useState<OrderWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -49,20 +51,37 @@ const OrderManagement = () => {
 
   const updateOrderStatus = async (orderId: string, status: "pending" | "processing" | "completed" | "failed" | "refunded") => {
     try {
-      const order = orders.find(o => o.id === orderId);
-      
-      // If approving (completing) a manual payment order
-      if (status === "completed" && order?.payment_method === "Bkash / Nagad") {
-        // Update order status
-        const { error: orderError } = await supabase
+      // If status is completed, we need to handle voucher assignment
+      if (status === "completed") {
+        // Get the order with product variant info
+        const { data: order, error: orderError } = await supabase
           .from("orders")
-          .update({ 
-            status,
-            completed_at: new Date().toISOString()
-          })
-          .eq("id", orderId);
+          .select("product_variant_id, user_id")
+          .eq("id", orderId)
+          .single();
 
         if (orderError) throw orderError;
+
+        // Create completed payment record if it doesn't exist
+        const { data: existingPayment } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("order_id", orderId)
+          .maybeSingle();
+
+        if (!existingPayment) {
+          await supabase
+            .from("payments")
+            .insert({
+              order_id: orderId,
+              user_id: order.user_id,
+              amount: 0, // This should be updated with the actual amount
+              payment_method: "admin_completed",
+              payment_provider: "admin",
+              status: "completed",
+              completed_at: new Date().toISOString(),
+            });
+        }
 
         // Update payment status
         await supabase
@@ -73,15 +92,18 @@ const OrderManagement = () => {
           })
           .eq("order_id", orderId);
 
-        // Assign voucher code
-        const { data: availableVouchers } = await supabase
+        // Assign voucher code to user
+        const { data: availableVouchers, error: voucherError } = await supabase
           .from("voucher_codes")
           .select("*")
           .eq("product_variant_id", order.product_variant_id)
           .eq("status", "available")
           .limit(1);
 
+        if (voucherError) throw voucherError;
+
         if (availableVouchers && availableVouchers.length > 0) {
+          // Assign voucher code to order
           await supabase
             .from("voucher_codes")
             .update({
@@ -105,27 +127,32 @@ const OrderManagement = () => {
               .eq("id", order.product_variant_id);
           }
         }
-      } else {
-        // Regular status update
-        const updateData: any = { status };
-        if (status === "completed") {
-          updateData.completed_at = new Date().toISOString();
-        }
-        
-        const { error } = await supabase
-          .from("orders")
-          .update(updateData)
-          .eq("id", orderId);
-
-        if (error) throw error;
       }
+      
+      // Regular status update
+      const updateData: { 
+        status?: "pending" | "processing" | "completed" | "failed" | "refunded"; 
+        completed_at?: string 
+      } = { status };
+      
+      if (status === "completed") {
+        updateData.completed_at = new Date().toISOString();
+      }
+      
+      const { error } = await supabase
+        .from("orders")
+        .update(updateData)
+        .eq("id", orderId);
+
+      if (error) throw error;
 
       toast({ title: "Order status updated successfully" });
       fetchOrders();
     } catch (error) {
+      console.error("Order status update error:", error);
       toast({
         title: "Error",
-        description: (error as Error).message,
+        description: (error as Error).message || "Failed to update order status",
         variant: "destructive",
       });
     }

@@ -72,7 +72,7 @@ const PageContentManagement = () => {
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to save content",
+        description: "Failed to save content: " + error.message,
         variant: "destructive",
       });
     } else {
@@ -103,7 +103,7 @@ const PageContentManagement = () => {
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to delete content",
+          description: "Failed to delete content: " + error.message,
           variant: "destructive",
         });
       } else {
@@ -164,15 +164,18 @@ const PageContentManagement = () => {
             </div>
 
             <div>
-              <Label htmlFor="content">Content (Plain Text Only)</Label>
+              <Label htmlFor="content">Content (HTML Supported)</Label>
               <Textarea
                 id="content"
-                rows={12}
+                rows={15}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter page content (plain text only, no HTML)"
+                placeholder="Enter page content (HTML tags supported)"
                 className="font-mono text-sm"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                You can use HTML tags for formatting. Example: &lt;h2&gt;Heading&lt;/h2&gt;&lt;p&gt;Paragraph text&lt;/p&gt;
+              </p>
             </div>
 
             <div className="flex gap-2">

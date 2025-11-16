@@ -117,20 +117,21 @@ const ProductManagement = () => {
           .from("products")
           .update(formData)
           .eq("id", editingProduct.id);
-        if (error) throw error;
-        toast({ title: "Product updated successfully" });
+      if (error) throw error;
+      toast({ title: "Product updated successfully" });
       } else {
         const { error } = await supabase.from("products").insert(formData);
-        if (error) throw error;
-        toast({ title: "Product created successfully" });
+      if (error) throw error;
+      toast({ title: "Product created successfully" });
       }
       setIsDialogOpen(false);
       resetForm();
       fetchProducts();
     } catch (error) {
+      console.error("Product management error:", error);
       toast({
         title: "Error",
-        description: (error as Error).message,
+        description: (error as Error).message || "Failed to manage product",
         variant: "destructive",
       });
     }
@@ -144,9 +145,10 @@ const ProductManagement = () => {
       toast({ title: "Product deleted successfully" });
       fetchProducts();
     } catch (error) {
+      console.error("Product delete error:", error);
       toast({
         title: "Error",
-        description: (error as Error).message,
+        description: (error as Error).message || "Failed to delete product",
         variant: "destructive",
       });
     }

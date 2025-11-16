@@ -144,6 +144,7 @@ const PageContentManagement = () => {
       // Set default titles for other pages
       if (selectedPage === "contact") {
         setTitle("Contact Us");
+        setContent("© 2025 BD Games Bazar. All rights reserved. 🎮\nEmail: support@bdgamesbazar.com\nWhatsApp: +880 XXX XXX XXXX\nFacebook: /bdgamesbazar");
       } else if (selectedPage === "terms") {
         setTitle("Terms & Conditions");
       } else if (selectedPage === "privacy") {
@@ -303,7 +304,7 @@ const PageContentManagement = () => {
           </div>
         ) : (
           <>
-            {selectedPage !== "footer" && (
+            {selectedPage !== "footer" && selectedPage !== "help" && (
               <div>
                 <Label htmlFor="title">Page Title</Label>
                 <Input
@@ -362,24 +363,19 @@ const PageContentManagement = () => {
                 </div>
               </div>
             ) : (
-              // Regular content editor for other pages
+              // Plain text editor for other pages
               <div>
                 <Label htmlFor="content">
-                  {selectedPage === "footer" ? "Copyright Text" : "Content (HTML Supported)"}
+                  {selectedPage === "footer" ? "Copyright Text" : "Content"}
                 </Label>
                 <Textarea
                   id="content"
-                  rows={selectedPage === "footer" ? 3 : 15}
+                  rows={selectedPage === "footer" ? 3 : 10}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder={selectedPage === "footer" ? "Enter copyright text" : "Enter page content (HTML tags supported)"}
+                  placeholder={selectedPage === "footer" ? "Enter copyright text" : "Enter page content"}
                   className="font-mono text-sm"
                 />
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedPage === "footer" 
-                    ? "Enter the copyright text that will appear in the footer" 
-                    : "You can use HTML tags for formatting. Example: &lt;h2&gt;Heading&lt;/h2&gt;&lt;p&gt;Paragraph text&lt;/p&gt;"}
-                </p>
                 
                 {/* Show default content hint for new pages */}
                 {(!content || content.trim() === "") && selectedPage !== "footer" && (

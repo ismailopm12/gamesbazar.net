@@ -49,6 +49,16 @@ const Contact = () => {
     setFormData({ name: "", email: "", message: "" });
   };
 
+  // Format content with line breaks
+  const formatContent = (text: string) => {
+    return text.split('\n').map((line, index) => (
+      <span key={index}>
+        {line}
+        <br />
+      </span>
+    ));
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -87,10 +97,15 @@ const Contact = () => {
                 </div>
 
                 {content?.content ? (
-                  <div className="mt-6 p-4 bg-muted/30 rounded-lg" dangerouslySetInnerHTML={{ __html: content.content }} />
+                  <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                    {formatContent(content.content)}
+                  </div>
                 ) : (
                   <div className="mt-6 p-4 bg-muted/30 rounded-lg">
                     <p>© 2025 BD Games Bazar. All rights reserved. 🎮</p>
+                    <p>Email: support@bdgamesbazar.com</p>
+                    <p>WhatsApp: +880 XXX XXX XXXX</p>
+                    <p>Facebook: /bdgamesbazar</p>
                   </div>
                 )}
               </CardContent>

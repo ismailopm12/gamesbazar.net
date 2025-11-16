@@ -32,6 +32,20 @@ const Terms = () => {
     if (data) setContent(data);
   };
 
+  // Format content with line breaks and basic formatting
+  const formatContent = (text: string) => {
+    return text.split('\n\n').map((paragraph, index) => (
+      <p key={index} className="mb-4">
+        {paragraph.split('\n').map((line, lineIndex) => (
+          <span key={lineIndex}>
+            {line}
+            {lineIndex < paragraph.split('\n').length - 1 && <br />}
+          </span>
+        ))}
+      </p>
+    ));
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -44,36 +58,38 @@ const Terms = () => {
           <Card>
             <CardContent className="prose prose-sm md:prose max-w-none p-6">
               {content?.content ? (
-                <div dangerouslySetInnerHTML={{ __html: content.content }} />
+                <div className="text-muted-foreground">
+                  {formatContent(content.content)}
+                </div>
               ) : (
                 <>
-                  <h2>১. সাধারণ শর্তাবলী</h2>
-                  <p>
+                  <h2 className="text-lg font-semibold mb-2">১. সাধারণ শর্তাবলী</h2>
+                  <p className="mb-4">
                     BD Games Bazar এর সেবা ব্যবহার করার মাধ্যমে আপনি এই শর্তাবলী মেনে নিতে সম্মত হচ্ছেন। যদি আপনি এই শর্তাবলীর সাথে একমত না হন, তাহলে দয়া করে এই সেবা ব্যবহার করবেন না।
                   </p>
 
-                  <h2>২. পণ্য ও সেবা</h2>
-                  <p>
+                  <h2 className="text-lg font-semibold mb-2">২. পণ্য ও সেবা</h2>
+                  <p className="mb-4">
                     আমরা বিভিন্ন গেমিং ভাউচার, ডায়মন্ড এবং গিফট কার্ড বিক্রয় করি। সকল পণ্য ডিজিটাল এবং পেমেন্ট সম্পন্ন হওয়ার পরে তাৎক্ষণিক ডেলিভারি করা হয়।
                   </p>
 
-                  <h2>৩. পেমেন্ট</h2>
-                  <p>
+                  <h2 className="text-lg font-semibold mb-2">৩. পেমেন্ট</h2>
+                  <p className="mb-4">
                     পেমেন্ট সম্পন্ন হওয়ার পরে কোন রিফান্ড বা এক্সচেঞ্জ করা যাবে না। পেমেন্ট করার আগে অবশ্যই সকল তথ্য সঠিক কিনা যাচাই করে নিন।
                   </p>
 
-                  <h2>৪. ডেলিভারি</h2>
-                  <p>
+                  <h2 className="text-lg font-semibold mb-2">৪. ডেলিভারি</h2>
+                  <p className="mb-4">
                     পেমেন্ট সফল হওয়ার সাথে সাথেই আপনার অ্যাকাউন্টে কোড ডেলিভারি করা হয়। সাধারণত এটি ১ মিনিটের মধ্যে সম্পন্ন হয়।
                   </p>
 
-                  <h2>৫. অ্যাকাউন্ট নিরাপত্তা</h2>
-                  <p>
+                  <h2 className="text-lg font-semibold mb-2">৫. অ্যাকাউন্ট নিরাপত্তা</h2>
+                  <p className="mb-4">
                     আপনার অ্যাকাউন্টের নিরাপত্তা বজায় রাখার দায়িত্ব আপনার। পাসওয়ার্ড কাউকে শেয়ার করবেন না।
                   </p>
 
-                  <h2>৬. যোগাযোগ</h2>
-                  <p>
+                  <h2 className="text-lg font-semibold mb-2">৬. যোগাযোগ</h2>
+                  <p className="mb-4">
                     যেকোনো সমস্যার জন্য আমাদের কাস্টমার সাপোর্টের সাথে যোগাযোগ করুন। আমরা সর্বদা সাহায্য করতে প্রস্তুত।
                   </p>
                 </>

@@ -5,6 +5,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define content type
 interface PageContent {
   id: string;
   page_slug: string;
@@ -31,29 +32,41 @@ const Privacy = () => {
     if (data) setContent(data);
   };
 
-  // Default privacy policy content in HTML format
-  const defaultContent = `
-    <h2>1. Information Collection</h2>
-    <p>We collect your email, phone number, and payment information which are necessary for providing our services.</p>
-    
-    <h2>2. Information Usage</h2>
-    <p>Your information is used solely for order processing and customer support. We never sell your personal information to third parties.</p>
-    
-    <h2>3. Information Security</h2>
-    <p>We make every effort to ensure the security of your information. Our systems are encrypted and secure.</p>
-    
-    <h2>4. Cookies</h2>
-    <p>We use cookies to enhance your browsing experience. You may disable cookies if you prefer.</p>
-    
-    <h2>5. Information Access</h2>
-    <p>You can view and modify your stored information at any time through your profile settings.</p>
-    
-    <h2>6. Policy Changes</h2>
-    <p>We may update this policy from time to time. We will notify you of significant changes.</p>
-    
-    <h2>7. Contact</h2>
-    <p>If you have any questions about this policy, please contact us.</p>
-  `;
+  // Default privacy policy content
+  const defaultContent = `1. Information Collection
+We collect your email, phone number, and payment information which are necessary for providing our services.
+
+2. Information Usage
+Your information is used solely for order processing and customer support. We never sell your personal information to third parties.
+
+3. Information Security
+We make every effort to ensure the security of your information. Our systems are encrypted and secure.
+
+4. Cookies
+We use cookies to enhance your browsing experience. You may disable cookies if you prefer.
+
+5. Information Access
+You can view and modify your stored information at any time through your profile settings.
+
+6. Policy Changes
+We may update this policy from time to time. We will notify you of significant changes.
+
+7. Contact
+If you have any questions about this policy, please contact us.`;
+
+  // Format content with line breaks and basic formatting
+  const formatContent = (text: string) => {
+    return text.split('\n\n').map((paragraph, index) => (
+      <p key={index} className="mb-4">
+        {paragraph.split('\n').map((line, lineIndex) => (
+          <span key={lineIndex}>
+            {line}
+            {lineIndex < paragraph.split('\n').length - 1 && <br />}
+          </span>
+        ))}
+      </p>
+    ));
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -67,9 +80,13 @@ const Privacy = () => {
           <Card>
             <CardContent className="prose prose-sm md:prose max-w-none p-6">
               {content?.content ? (
-                <div dangerouslySetInnerHTML={{ __html: content.content }} />
+                <div className="text-muted-foreground">
+                  {formatContent(content.content)}
+                </div>
               ) : (
-                <div dangerouslySetInnerHTML={{ __html: defaultContent }} />
+                <div className="text-muted-foreground">
+                  {formatContent(defaultContent)}
+                </div>
               )}
             </CardContent>
           </Card>

@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import AnimatedWrapper from "@/components/AnimatedWrapper";
 
 interface WebsiteSettings {
   id: string;
@@ -122,128 +123,148 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-card/80 backdrop-blur-lg border-b border-border sticky top-0 z-50 animate-fade-in shadow-lg">
+    <header className="bg-card/80 backdrop-blur-lg border-b border-border sticky top-0 z-50 shadow-lg">
       <div className="container mx-auto px-4">
         {/* Main Header */}
         <div className="flex items-center justify-between py-3 md:py-4">
-          <a href="/" className="flex items-center space-x-2 md:space-x-3 cursor-pointer group">
-            {websiteSettings?.logo_url ? (
-              <img 
-                src={websiteSettings.logo_url} 
-                alt={websiteSettings?.site_title || "BD GAMES BAZAR"} 
-                className="h-9 w-9 md:h-11 md:w-11 object-contain"
-              />
-            ) : (
-              <div 
-                className="w-9 h-9 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-glow transition-transform duration-300 group-hover:scale-110"
-                style={{ backgroundColor: websiteSettings?.primary_color || '#8B5CF6' }}
-              >
-                <span className="text-white font-bold text-base md:text-xl">GB</span>
+          <AnimatedWrapper type="slide" delay={0.1}>
+            <a href="/" className="flex items-center space-x-2 md:space-x-3 cursor-pointer group">
+              {websiteSettings?.logo_url ? (
+                <img 
+                  src={websiteSettings.logo_url} 
+                  alt={websiteSettings?.site_title || "BD GAMES BAZAR"} 
+                  className="h-9 w-9 md:h-11 md:w-11 object-contain transition-transform duration-300 group-hover:scale-110"
+                />
+              ) : (
+                <div 
+                  className="w-9 h-9 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-glow transition-transform duration-300 group-hover:scale-110"
+                  style={{ backgroundColor: websiteSettings?.primary_color || '#8B5CF6' }}
+                >
+                  <span className="text-white font-bold text-base md:text-xl">GB</span>
+                </div>
+              )}
+              <div>
+                <h1 
+                  className="text-base md:text-xl font-heading font-bold"
+                  style={{ 
+                    background: websiteSettings 
+                      ? `linear-gradient(90deg, ${websiteSettings.primary_color}, ${websiteSettings.secondary_color})` 
+                      : 'linear-gradient(90deg, #8B5CF6, #06B6D4)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
+                  {websiteSettings?.site_title || "BD GAMES BAZAR"}
+                </h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Gaming Voucher Shop</p>
               </div>
-            )}
-            <div>
-              <h1 
-                className="text-base md:text-xl font-heading font-bold"
-                style={{ 
-                  background: websiteSettings 
-                    ? `linear-gradient(90deg, ${websiteSettings.primary_color}, ${websiteSettings.secondary_color})` 
-                    : 'linear-gradient(90deg, #8B5CF6, #06B6D4)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}
-              >
-                {websiteSettings?.site_title || "BD GAMES BAZAR"}
-              </h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Gaming Voucher Shop</p>
-            </div>
-          </a>
+            </a>
+          </AnimatedWrapper>
 
           <div className="flex items-center gap-1.5 md:gap-2">
             {user ? (
               <>
-                <div className="hidden md:flex items-center gap-2 mr-2">
-                  <Badge variant="secondary" className="flex items-center gap-1.5 bg-gradient-success text-success-foreground shadow-md animate-scale-in">
-                    <Wallet className="h-3.5 w-3.5" />
-                    ৳{balance.toFixed(2)}
-                  </Badge>
-                </div>
+                <AnimatedWrapper type="slide" delay={0.2}>
+                  <div className="hidden md:flex items-center gap-2 mr-2">
+                    <Badge variant="secondary" className="flex items-center gap-1.5 bg-gradient-success text-success-foreground shadow-md">
+                      <Wallet className="h-3.5 w-3.5" />
+                      ৳{balance.toFixed(2)}
+                    </Badge>
+                  </div>
+                </AnimatedWrapper>
                 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-1.5 md:gap-2 hover-lift">
-                      <User className="h-4 w-4" />
-                      <span className="hidden md:inline">Account</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 animate-scale-in">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col">
-                        <span className="font-medium truncate">{user.email}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                          <Wallet className="h-3 w-3" />
-                          Balance: ৳{balance.toFixed(2)}
-                        </span>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    
-                    {isAdmin && (
-                      <>
-                        <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer">
-                          <Shield className="mr-2 h-4 w-4 text-primary" />
-                          Admin Dashboard
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    
-                    <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      My Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/add-money")} className="cursor-pointer">
-                      <Wallet className="mr-2 h-4 w-4" />
-                      Add Money
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/my-orders")} className="cursor-pointer">
-                      <ShoppingBag className="mr-2 h-4 w-4" />
-                      My Orders
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/my-codes")} className="cursor-pointer">
-                      <Code className="mr-2 h-4 w-4" />
-                      My Codes
-                    </DropdownMenuItem>
-                    
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <AnimatedWrapper type="slide" delay={0.3}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-1.5 md:gap-2 hover-lift">
+                        <User className="h-4 w-4" />
+                        <span className="hidden md:inline">Account</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 animate-scale-in">
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col">
+                          <span className="font-medium truncate">{user.email}</span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <Wallet className="h-3 w-3" />
+                            Balance: ৳{balance.toFixed(2)}
+                          </span>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer">
+                            <Shield className="mr-2 h-4 w-4 text-primary" />
+                            Admin Dashboard
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      
+                      <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        My Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/add-money")} className="cursor-pointer">
+                        <Wallet className="mr-2 h-4 w-4" />
+                        Add Money
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/my-orders")} className="cursor-pointer">
+                        <ShoppingBag className="mr-2 h-4 w-4" />
+                        My Orders
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/live-orders")} className="cursor-pointer">
+                        <Search className="mr-2 h-4 w-4" />
+                        Live Orders
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/my-codes")} className="cursor-pointer">
+                        <Code className="mr-2 h-4 w-4" />
+                        My Codes
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </AnimatedWrapper>
               </>
             ) : (
               <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/auth")} 
-                  className="hover-lift text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-9"
-                >
-                  Register
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => navigate("/auth")} 
-                  className="text-xs sm:text-sm px-3 sm:px-4 h-8 sm:h-9"
-                  style={{ 
-                    background: websiteSettings 
-                      ? `linear-gradient(90deg, ${websiteSettings.primary_color}, ${websiteSettings.accent_color})` 
-                      : 'linear-gradient(90deg, #8B5CF6, #10B981)',
-                  }}
-                >
-                  Login
-                </Button>
+                <AnimatedWrapper type="slide" delay={0.2}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate("/live-orders")}
+                    className="text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-9 hover-lift mr-2"
+                  >
+                    <Search className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Live Orders</span>
+                  </Button>
+                </AnimatedWrapper>
+                <AnimatedWrapper type="slide" delay={0.3}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate("/auth")} 
+                    className="text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-9 hover-lift"
+                  >
+                    Register
+                  </Button>
+                </AnimatedWrapper>
+                <AnimatedWrapper type="slide" delay={0.4}>
+                  <Button 
+                    size="sm" 
+                    onClick={() => navigate("/auth")} 
+                    className="text-xs sm:text-sm px-3 sm:px-4 h-8 sm:h-9 btn-primary"
+                  >
+                    Login
+                  </Button>
+                </AnimatedWrapper>
               </>
             )}
           </div>

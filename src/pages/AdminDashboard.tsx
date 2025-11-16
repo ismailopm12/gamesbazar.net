@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut, Menu, X, ShoppingCart, Package, FolderTree, List, Gift, Users, Image, Bell, FileText, Link2, Wallet, CreditCard, BookOpen, Palette } from "lucide-react";
+import { Loader2, LogOut, Menu, X, ShoppingCart, Package, FolderTree, List, Gift, Users, Image, Bell, FileText, Link2, Wallet, CreditCard, BookOpen, Palette, Wrench } from "lucide-react";
 import UserManagement from "@/components/admin/UserManagement";
 import ProductManagement from "@/components/admin/ProductManagement";
 import VariantManagement from "@/components/admin/VariantManagement";
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     { value: "money-requests", label: "Money Requests", icon: Wallet },
     { value: "page-content", label: "Page Content", icon: BookOpen },
     { value: "website-settings", label: "Website Settings", icon: Palette },
-    { value: "storage-test", label: "Storage Test", icon: Settings },
+    { value: "storage-test", label: "Storage Test", icon: Wrench },
     { value: "seo", label: "SEO", icon: FileText },
     { value: "user-test", label: "User Test", icon: Users },
   ];

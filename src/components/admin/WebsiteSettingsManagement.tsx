@@ -55,7 +55,7 @@ const WebsiteSettingsManagement = () => {
         .limit(1)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "JSON object requested, multiple (or no) rows returned"
         console.error("Fetch error:", error);
         toast({
           title: "Error",
@@ -68,21 +68,23 @@ const WebsiteSettingsManagement = () => {
           ...data
         });
       } else {
-        // If no data exists, create a default row
+        // No data found, create a default record
+        const defaultSettings = {
+          site_title: "BD GAMES BAZAR",
+          primary_color: "#8B5CF6",
+          secondary_color: "#06B6D4",
+          accent_color: "#10B981",
+          facebook_url: "https://facebook.com/bdgamesbazar",
+          youtube_url: "https://youtube.com/@bdgamesbazar",
+          whatsapp_url: "https://wa.me/8801XXXXXXXXX",
+          telegram_url: "https://t.me/bdgamesbazar",
+          primary_font: "Inter",
+          secondary_font: "Poppins",
+        };
+
         const { data: insertData, error: insertError } = await supabase
           .from("website_settings")
-          .insert({
-            site_title: "BD GAMES BAZAR",
-            primary_color: "#8B5CF6",
-            secondary_color: "#06B6D4",
-            accent_color: "#10B981",
-            facebook_url: "https://facebook.com/bdgamesbazar",
-            youtube_url: "https://youtube.com/@bdgamesbazar",
-            whatsapp_url: "https://wa.me/8801XXXXXXXXX",
-            telegram_url: "https://t.me/bdgamesbazar",
-            primary_font: "Inter",
-            secondary_font: "Poppins",
-          })
+          .insert(defaultSettings)
           .select()
           .single();
 
@@ -114,19 +116,36 @@ const WebsiteSettingsManagement = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Check if we have a valid ID
-      if (settings.id) {
+      // Always update the first (and should be only) record
+      // This avoids ID-related issues
+      const { data: existingData, error: selectError } = await supabase
+        .from("website_settings")
+        .select("id")
+        .limit(1);
+
+      if (selectError) {
+        console.error("Select error:", selectError);
+        toast({
+          title: "Error",
+          description: "Failed to check website settings: " + selectError.message,
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
+      }
+
+      if (existingData && existingData.length > 0) {
         // Update existing record
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from("website_settings")
           .update(settings)
-          .eq("id", settings.id);
+          .eq("id", existingData[0].id);
 
-        if (error) {
-          console.error("Update error:", error);
+        if (updateError) {
+          console.error("Update error:", updateError);
           toast({
             title: "Error",
-            description: "Failed to save website settings: " + error.message,
+            description: "Failed to save website settings: " + updateError.message,
             variant: "destructive",
           });
         } else {
@@ -136,63 +155,25 @@ const WebsiteSettingsManagement = () => {
           });
         }
       } else {
-        // If no ID, try to insert or update the first record
-        const { data: existingData } = await supabase
+        // Insert new record if no records exist
+        const { error: insertError } = await supabase
           .from("website_settings")
-          .select("id")
-          .limit(1);
+          .insert(settings);
 
-        if (existingData && existingData.length > 0) {
-          // Update the first record
-          const { error } = await supabase
-            .from("website_settings")
-            .update(settings)
-            .eq("id", existingData[0].id);
-
-          if (error) {
-            console.error("Update error:", error);
-            toast({
-              title: "Error",
-              description: "Failed to save website settings: " + error.message,
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Success",
-              description: "Website settings saved successfully",
-            });
-            // Update the ID in state
-            setSettings({
-              ...settings,
-              id: existingData[0].id
-            });
-          }
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          toast({
+            title: "Error",
+            description: "Failed to save website settings: " + insertError.message,
+            variant: "destructive",
+          });
         } else {
-          // Insert new record
-          const { data: insertData, error: insertError } = await supabase
-            .from("website_settings")
-            .insert(settings)
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error("Insert error:", insertError);
-            toast({
-              title: "Error",
-              description: "Failed to save website settings: " + insertError.message,
-              variant: "destructive",
-            });
-          } else if (insertData) {
-            toast({
-              title: "Success",
-              description: "Website settings saved successfully",
-            });
-            // Update the ID in state
-            setSettings({
-              ...settings,
-              id: insertData.id
-            });
-          }
+          toast({
+            title: "Success",
+            description: "Website settings saved successfully",
+          });
+          // Refresh the data to get the new ID
+          fetchSettings();
         }
       }
     } catch (error) {

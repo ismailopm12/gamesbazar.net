@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Facebook, Youtube, MessageCircle, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 const WebsiteSettingsManagement = () => {
@@ -18,8 +19,28 @@ const WebsiteSettingsManagement = () => {
     primary_color: "#8B5CF6",
     secondary_color: "#06B6D4",
     accent_color: "#10B981",
+    facebook_url: "https://facebook.com/bdgamesbazar",
+    youtube_url: "https://youtube.com/@bdgamesbazar",
+    whatsapp_url: "https://wa.me/8801XXXXXXXXX",
+    telegram_url: "https://t.me/bdgamesbazar",
+    primary_font: "Inter",
+    secondary_font: "Poppins",
   });
   const { toast } = useToast();
+
+  // Font options
+  const fontOptions = [
+    { value: "Inter", label: "Inter" },
+    { value: "Poppins", label: "Poppins" },
+    { value: "Roboto", label: "Roboto" },
+    { value: "Open Sans", label: "Open Sans" },
+    { value: "Montserrat", label: "Montserrat" },
+    { value: "Lato", label: "Lato" },
+    { value: "Nunito", label: "Nunito" },
+    { value: "Oswald", label: "Oswald" },
+    { value: "Raleway", label: "Raleway" },
+    { value: "Ubuntu", label: "Ubuntu" },
+  ];
 
   useEffect(() => {
     fetchSettings();
@@ -36,11 +57,14 @@ const WebsiteSettingsManagement = () => {
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch website settings",
+        description: "Failed to fetch website settings: " + error.message,
         variant: "destructive",
       });
     } else if (data) {
-      setSettings(data);
+      setSettings({
+        ...settings,
+        ...data
+      });
     }
     setLoading(false);
   };
@@ -56,7 +80,7 @@ const WebsiteSettingsManagement = () => {
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to save website settings",
+        description: "Failed to save website settings: " + error.message,
         variant: "destructive",
       });
     } else {
@@ -88,7 +112,7 @@ const WebsiteSettingsManagement = () => {
     if (uploadError) {
       toast({
         title: "Error",
-        description: "Failed to upload logo",
+        description: "Failed to upload logo: " + uploadError.message,
         variant: "destructive",
       });
       return;
@@ -162,6 +186,47 @@ const WebsiteSettingsManagement = () => {
           />
         </div>
 
+        {/* Fonts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="primary_font">Primary Font</Label>
+            <Select 
+              value={settings.primary_font} 
+              onValueChange={(value) => setSettings({ ...settings, primary_font: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontOptions.map((font) => (
+                  <SelectItem key={font.value} value={font.value}>
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="secondary_font">Secondary Font</Label>
+            <Select 
+              value={settings.secondary_font} 
+              onValueChange={(value) => setSettings({ ...settings, secondary_font: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontOptions.map((font) => (
+                  <SelectItem key={font.value} value={font.value}>
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Colors */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
@@ -175,10 +240,10 @@ const WebsiteSettingsManagement = () => {
                 className="w-16 h-10 p-1 cursor-pointer"
               />
               <Input
-                type="text"
                 value={settings.primary_color}
                 onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
-                className="flex-1 font-mono"
+                className="flex-1"
+                placeholder="#8B5CF6"
               />
             </div>
           </div>
@@ -194,10 +259,10 @@ const WebsiteSettingsManagement = () => {
                 className="w-16 h-10 p-1 cursor-pointer"
               />
               <Input
-                type="text"
                 value={settings.secondary_color}
                 onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
-                className="flex-1 font-mono"
+                className="flex-1"
+                placeholder="#06B6D4"
               />
             </div>
           </div>
@@ -213,44 +278,147 @@ const WebsiteSettingsManagement = () => {
                 className="w-16 h-10 p-1 cursor-pointer"
               />
               <Input
-                type="text"
                 value={settings.accent_color}
                 onChange={(e) => setSettings({ ...settings, accent_color: e.target.value })}
-                className="flex-1 font-mono"
+                className="flex-1"
+                placeholder="#10B981"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Social Media Links */}
+        <div className="space-y-4">
+          <div>
+            <Label className="text-lg font-semibold">Social Media Links</Label>
+            <p className="text-sm text-muted-foreground">Manage your social media presence</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="facebook_url" className="flex items-center gap-2">
+                <Facebook className="h-4 w-4 text-blue-600" />
+                Facebook URL
+              </Label>
+              <Input
+                id="facebook_url"
+                value={settings.facebook_url}
+                onChange={(e) => setSettings({ ...settings, facebook_url: e.target.value })}
+                placeholder="https://facebook.com/yourpage"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="youtube_url" className="flex items-center gap-2">
+                <Youtube className="h-4 w-4 text-red-600" />
+                YouTube URL
+              </Label>
+              <Input
+                id="youtube_url"
+                value={settings.youtube_url}
+                onChange={(e) => setSettings({ ...settings, youtube_url: e.target.value })}
+                placeholder="https://youtube.com/@yourchannel"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp_url" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4 text-green-500" />
+                WhatsApp URL
+              </Label>
+              <Input
+                id="whatsapp_url"
+                value={settings.whatsapp_url}
+                onChange={(e) => setSettings({ ...settings, whatsapp_url: e.target.value })}
+                placeholder="https://wa.me/yourphonenumber"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="telegram_url" className="flex items-center gap-2">
+                <Send className="h-4 w-4 text-blue-400" />
+                Telegram URL
+              </Label>
+              <Input
+                id="telegram_url"
+                value={settings.telegram_url}
+                onChange={(e) => setSettings({ ...settings, telegram_url: e.target.value })}
+                placeholder="https://t.me/yourchannel"
               />
             </div>
           </div>
         </div>
 
         {/* Preview */}
-        <div className="space-y-2">
-          <Label>Preview</Label>
-          <div 
-            className="p-4 rounded-lg border"
-            style={{ backgroundColor: settings.primary_color }}
-          >
-            <div className="flex items-center space-x-2">
-              {settings.logo_url ? (
-                <img 
-                  src={settings.logo_url} 
-                  alt="Logo preview" 
-                  className="h-8 w-8 object-contain"
-                />
-              ) : (
-                <div 
-                  className="h-8 w-8 rounded flex items-center justify-center text-white font-bold"
-                  style={{ backgroundColor: settings.accent_color }}
-                >
-                  GB
-                </div>
-              )}
-              <h1 
-                className="text-lg font-bold"
-                style={{ color: settings.secondary_color }}
+        <div className="border rounded-lg p-4">
+          <Label className="text-lg font-semibold mb-3 block">Preview</Label>
+          <div className="flex items-center space-x-2">
+            {settings.logo_url ? (
+              <img 
+                src={settings.logo_url} 
+                alt="Logo preview" 
+                className="h-8 w-8 object-contain"
+              />
+            ) : (
+              <div 
+                className="h-8 w-8 rounded flex items-center justify-center text-white font-bold"
+                style={{ backgroundColor: settings.accent_color }}
               >
-                {settings.site_title}
-              </h1>
-            </div>
+                GB
+              </div>
+            )}
+            <h1 
+              className="text-lg font-bold"
+              style={{ 
+                color: settings.secondary_color,
+                fontFamily: settings.primary_font
+              }}
+            >
+              {settings.site_title}
+            </h1>
+          </div>
+          
+          <div className="flex gap-2 mt-3">
+            {settings.facebook_url && (
+              <a 
+                href={settings.facebook_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 rounded-full hover:bg-muted transition-colors"
+              >
+                <Facebook className="h-4 w-4 text-blue-600" />
+              </a>
+            )}
+            {settings.youtube_url && (
+              <a 
+                href={settings.youtube_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 rounded-full hover:bg-muted transition-colors"
+              >
+                <Youtube className="h-4 w-4 text-red-600" />
+              </a>
+            )}
+            {settings.whatsapp_url && (
+              <a 
+                href={settings.whatsapp_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 rounded-full hover:bg-muted transition-colors"
+              >
+                <MessageCircle className="h-4 w-4 text-green-500" />
+              </a>
+            )}
+            {settings.telegram_url && (
+              <a 
+                href={settings.telegram_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 rounded-full hover:bg-muted transition-colors"
+              >
+                <Send className="h-4 w-4 text-blue-400" />
+              </a>
+            )}
           </div>
         </div>
 

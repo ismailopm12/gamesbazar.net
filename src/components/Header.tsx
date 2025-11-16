@@ -23,6 +23,12 @@ interface WebsiteSettings {
   primary_color: string;
   secondary_color: string;
   accent_color: string;
+  facebook_url: string | null;
+  youtube_url: string | null;
+  whatsapp_url: string | null;
+  telegram_url: string | null;
+  primary_font: string | null;
+  secondary_font: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -72,6 +78,44 @@ const Header = () => {
     
     if (data) {
       setWebsiteSettings(data);
+      
+      // Apply font settings to the document
+      if (data.primary_font || data.secondary_font) {
+        const primaryFont = data.primary_font || 'Inter';
+        const secondaryFont = data.secondary_font || 'Poppins';
+        
+        // Create or update font CSS
+        let fontStyles = document.getElementById('font-styles');
+        if (!fontStyles) {
+          fontStyles = document.createElement('style');
+          fontStyles.id = 'font-styles';
+          document.head.appendChild(fontStyles);
+        }
+        
+        // Add Google Fonts link if not already present
+        const fontLink = `https://fonts.googleapis.com/css2?family=${primaryFont.replace(' ', '+')}&family=${secondaryFont.replace(' ', '+')}:wght@400;500;600;700&display=swap`;
+        let linkElement = document.querySelector(`link[href="${fontLink}"]`);
+        if (!linkElement) {
+          linkElement = document.createElement('link');
+          (linkElement as HTMLLinkElement).rel = 'stylesheet';
+          (linkElement as HTMLLinkElement).href = fontLink;
+          document.head.appendChild(linkElement);
+        }
+        
+        // Apply font styles
+        fontStyles.textContent = `
+          :root {
+            --font-primary: '${primaryFont}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-secondary: '${secondaryFont}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          }
+          body {
+            font-family: var(--font-primary);
+          }
+          h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-secondary);
+          }
+        `;
+      }
     }
   };
 

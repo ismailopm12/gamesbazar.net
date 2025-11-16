@@ -47,9 +47,18 @@ const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [websiteSettings, setWebsiteSettings] = useState({
+    facebook_url: "https://facebook.com/bdgamesbazar",
+    youtube_url: "https://youtube.com/@bdgamesbazar",
+    whatsapp_url: "https://wa.me/8801XXXXXXXXX",
+    telegram_url: "https://t.me/bdgamesbazar",
+    primary_font: "Inter",
+    secondary_font: "Poppins",
+  });
 
   useEffect(() => {
     fetchUserData();
+    fetchWebsiteSettings();
   }, []);
 
   const fetchUserData = async () => {
@@ -102,6 +111,56 @@ const Profile = () => {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWebsiteSettings = async () => {
+    const { data } = await supabase
+      .from("website_settings")
+      .select("facebook_url, youtube_url, whatsapp_url, telegram_url, primary_font, secondary_font")
+      .limit(1)
+      .single();
+    
+    if (data) {
+      setWebsiteSettings(data);
+      
+      // Apply font settings to the document
+      if (data.primary_font || data.secondary_font) {
+        const primaryFont = data.primary_font || 'Inter';
+        const secondaryFont = data.secondary_font || 'Poppins';
+        
+        // Create or update font CSS
+        let fontStyles = document.getElementById('font-styles');
+        if (!fontStyles) {
+          fontStyles = document.createElement('style');
+          fontStyles.id = 'font-styles';
+          document.head.appendChild(fontStyles);
+        }
+        
+        // Add Google Fonts link if not already present
+        const fontLink = `https://fonts.googleapis.com/css2?family=${primaryFont.replace(' ', '+')}&family=${secondaryFont.replace(' ', '+')}:wght@400;500;600;700&display=swap`;
+        let linkElement = document.querySelector(`link[href="${fontLink}"]`);
+        if (!linkElement) {
+          linkElement = document.createElement('link');
+          (linkElement as HTMLLinkElement).rel = 'stylesheet';
+          (linkElement as HTMLLinkElement).href = fontLink;
+          document.head.appendChild(linkElement);
+        }
+        
+        // Apply font styles
+        fontStyles.textContent = `
+          :root {
+            --font-primary: '${primaryFont}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-secondary: '${secondaryFont}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          }
+          body {
+            font-family: var(--font-primary);
+          }
+          h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-secondary);
+          }
+        `;
+      }
     }
   };
 
@@ -238,9 +297,24 @@ const Profile = () => {
   ];
 
   const socialLinks = [
-    { icon: Facebook, label: "Facebook", color: "text-blue-600" },
-    { icon: Youtube, label: "YouTube", color: "text-red-600" },
-    { icon: WhatsApp, label: "WhatsApp", color: "text-green-500" }
+    { 
+      icon: Facebook, 
+      label: "Facebook", 
+      color: "text-blue-600",
+      url: websiteSettings.facebook_url
+    },
+    { 
+      icon: Youtube, 
+      label: "YouTube", 
+      color: "text-red-600",
+      url: websiteSettings.youtube_url
+    },
+    { 
+      icon: WhatsApp, 
+      label: "WhatsApp", 
+      color: "text-green-500",
+      url: websiteSettings.whatsapp_url
+    }
   ];
 
   return (
@@ -341,6 +415,8 @@ const Profile = () => {
                     key={index}
                     variant="outline"
                     className="flex flex-col items-center space-y-2 h-16"
+                    onClick={() => window.open(social.url, '_blank')}
+                    disabled={!social.url}
                   >
                     <social.icon className={`w-5 h-5 ${social.color}`} />
                     <span className="text-xs">{social.label}</span>
